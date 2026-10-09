@@ -1,0 +1,7 @@
+<!-- Add inside the top-level <dict> of ios/Runner/Info.plist -->
+<key>CFBundleDisplayName</key>
+<string>からだ手帖</string>
+<key>NSHealthShareUsageDescription</key>
+<string>体重・血圧・心拍数・体温・血糖値・体脂肪率をヘルスケアから読み込み、記録とグラフに表示します。</string>
+<key>NSHealthUpdateUsageDescription</key>
+<string>からだ手帖はヘルスケアのデータを読み取るだけで、書き込みは行いません。</string>
