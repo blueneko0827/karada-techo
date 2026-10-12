@@ -34,6 +34,14 @@ if ($g -notmatch 'desugar_jdk_libs') {
 }
 [System.IO.File]::WriteAllText((Resolve-Path $gradle), $g)
 
+# Force plugins (health) to compile against API 36; goes at the top of the root build file.
+Copy-Item platform_setup\android\force_compile_sdk.gradle android\force_compile_sdk.gradle -Force
+$root = 'android\build.gradle.kts'
+$r = Get-Content $root -Raw
+if ($r -notmatch 'force_compile_sdk') {
+  [System.IO.File]::WriteAllText((Resolve-Path $root), "apply(from = `"force_compile_sdk.gradle`")`n`n" + $r)
+}
+
 Write-Host '6/6  Fetching packages and generating launcher icons...'
 flutter pub get
 dart run flutter_launcher_icons

@@ -26,6 +26,14 @@ if ! grep -q desugar_jdk_libs "$G"; then
 fi
 rm -f "$G.bak"
 
+# Force plugins (health) to compile against API 36. Must run before the template's
+# `evaluationDependsOn(":app")`, so it goes at the top of the root build file.
+cp platform_setup/android/force_compile_sdk.gradle android/force_compile_sdk.gradle
+R=android/build.gradle.kts
+if ! grep -q force_compile_sdk "$R"; then
+  { echo 'apply(from = "force_compile_sdk.gradle")'; echo; cat "$R"; } > "$R.tmp" && mv "$R.tmp" "$R"
+fi
+
 flutter pub get
 dart run flutter_launcher_icons
 echo "Android setup done."
