@@ -1,0 +1,55 @@
+name: karada_techo
+description: からだ手帖 — 毎日の健康測定を記録して、変化をわかりやすく見える化するアプリ
+publish_to: 'none'
+version: 0.1.0+1
+
+# health 12.x needs intl 0.20 and sqflite 2.4.2 needs Dart 3.7+,
+# so Flutter 3.32 is the real minimum.
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # State
+  flutter_riverpod: ^2.6.1
+  # On-device storage (no account, no server)
+  sqflite: ^2.4.2
+  path: ^1.9.0
+  # Daily measurement reminders
+  flutter_local_notifications: ^19.4.2
+  timezone: ^0.10.1
+  # Apple Health (iOS) / Health Connect (Android)
+  health: ^12.2.0
+  # Doctor report PDF
+  pdf: ^3.11.3
+  printing: ^5.14.2
+
+# image 4.11.0 (pulled in by pdf and flutter_launcher_icons) declares archive ^4.0.9
+# but calls ZLibDecoder.decodeLazy, which only exists from archive 4.4.0.
+# Another package holds archive at 4.0.x, so force a version that has it.
+dependency_overrides:
+  archive: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFDF6"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  min_sdk_android: 26

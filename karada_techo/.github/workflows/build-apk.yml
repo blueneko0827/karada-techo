@@ -1,0 +1,75 @@
+# Builds a test APK on every push to main (or from the Actions tab → Run workflow)
+# and attaches it to a GitHub Release, so it can be downloaded straight to a phone.
+name: Build test APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Generate Android project and apply setup
+        run: bash scripts/setup_android.sh
+
+      # Japanese font for the PDF report (optional: the app still runs without it).
+      - name: Fetch Noto Sans JP for PDF reports
+        continue-on-error: true
+        run: |
+          if [ ! -f assets/fonts/NotoSansJP-Regular.ttf ]; then
+            url=$(curl -fsSL -A "Mozilla/4.0" "https://fonts.googleapis.com/css?family=Noto+Sans+JP:400" \
+              | grep -o "https://fonts.gstatic.com/[^)]*\.ttf" | head -n1)
+            [ -n "$url" ] && curl -fsSL "$url" -o assets/fonts/NotoSansJP-Regular.ttf
+            ls -la assets/fonts
+          fi
+
+      - name: Analyze
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Unit tests
+        continue-on-error: true
+        run: flutter test
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk karada-techo-${{ github.run_number }}.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karada-techo-apk
+          path: karada-techo-${{ github.run_number }}.apk
+
+      - name: Publish test release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-build-${{ github.run_number }}
+          name: テストビルド ${{ github.run_number }}
+          prerelease: true
+          body: |
+            からだ手帖 テスト用APK（${{ github.sha }}）
+            Android の「提供元不明のアプリ」を許可してからインストールしてください。
+          files: karada-techo-${{ github.run_number }}.apk

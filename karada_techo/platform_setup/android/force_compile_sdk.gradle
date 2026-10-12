@@ -1,0 +1,23 @@
+// Raises compileSdk for every Android module (including plugins such as `health`)
+// to at least 36. The health plugin compiles against 34, but its Health Connect
+// dependency requires 35+, which fails :health:checkReleaseAarMetadata.
+// compileSdk only changes which APIs the code compiles against; minSdk and
+// targetSdk (runtime behaviour) are untouched.
+def requiredCompileSdk = 36
+
+subprojects { sub ->
+    def raise = {
+        def android = sub.extensions.findByName('android')
+        if (android == null) return
+        def current = android.compileSdkVersion?.toString()?.replaceAll(/\D/, '')
+        def n = current ? current as int : 0
+        if (n < requiredCompileSdk) {
+            android.compileSdkVersion(requiredCompileSdk)
+        }
+    }
+    if (sub.state.executed) {
+        raise()
+    } else {
+        sub.afterEvaluate { raise() }
+    }
+}
